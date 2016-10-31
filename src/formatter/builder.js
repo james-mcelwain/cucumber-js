@@ -12,7 +12,7 @@ import SummaryFormatter from './summary_formatter'
 
 export default class FormatterBuilder {
   static build(type, options) {
-    const Formatter = FormatterBuilder.getConstructorByType(type)
+    const Formatter = FormatterBuilder.getConstructorByType(type, options)
     const extendedOptions = _.assign({}, options, {
       colorFns: getColorFns(options.colorsEnabled),
       snippetBuilder: FormatterBuilder.getStepDefinitionSnippetBuilder(options)
@@ -20,7 +20,7 @@ export default class FormatterBuilder {
     return new Formatter(extendedOptions)
   }
 
-  static getConstructorByType(type) {
+  static getConstructorByType(type, options) {
     switch(type) {
       case 'json': return JsonFormatter
       case 'pretty': return PrettyFormatter
@@ -28,7 +28,7 @@ export default class FormatterBuilder {
       case 'rerun': return RerunFormatter
       case 'snippets': return SnippetsFormatter
       case 'summary': return SummaryFormatter
-      default: throw new Error('Unknown formatter name "' + type + '".')
+      default: return FormatterBuilder.loadCustomFormatter(type, options)
     }
   }
 
@@ -45,5 +45,17 @@ export default class FormatterBuilder {
       snippetSyntax: new Syntax(snippetInterface),
       transformLookup: supportCodeLibrary.transformLookup
     })
+  }
+
+  static loadCustomFormatter(customFormatterPath, {cwd}) {
+    const fullCustomFormatterPath = path.resolve(cwd, customFormatterPath)
+    const CustomFormatter = require(fullCustomFormatterPath)
+    if (typeof(CustomFormatter) === 'function') {
+      return CustomFormatter
+    } else if (CustomFormatter && typeof(CustomFormatter.default) === 'function') {
+      return CustomFormatter.default
+    } else {
+      throw new Error(`Custom formatter (${customFormatterPath}) does not export a function`)
+    }
   }
 }
