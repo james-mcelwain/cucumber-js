@@ -10,9 +10,9 @@ All support files that export a function will be called with a context that expo
 
 Add a new transform to convert a capture group into something else.
 
-* `captureGroupRegexps` - array of regular expressions to apply the transformer to
-* `transformer` - function which transforms the captured group from a string into what is passed to the step definition
-* `typeName` - string used to refer to this type in cucumber expressions
+* `captureGroupRegexps`: An array of regular expressions to apply the transformer to
+* `transformer`: A function which transforms the captured group from a string into what is passed to the step definition
+* `typeName`: string used to refer to this type in cucumber expressions
 
 The built in transforms are:
 ```js
