@@ -5,13 +5,14 @@ import util from 'util'
 
 export default class UserCodeRunner {
   static async run ({argsArray, thisArg, fn, timeoutInMilliseconds}) {
-    const callbackDeferred = Promise.defer()
-    argsArray.push(function(error, result) {
-      if (error) {
-        callbackDeferred.reject(error)
-      } else {
-        callbackDeferred.resolve(result)
-      }
+    const callbackPromise = new Promise(function (resolve, reject) {
+      argsArray.push(function(error, result) {
+        if (error) {
+          reject(error)
+        } else {
+          resolve(result)
+        }
+      })
     })
 
     let fnReturn
@@ -29,26 +30,27 @@ export default class UserCodeRunner {
     if (callbackInterface && promiseInterface) {
       return {error: 'function uses multiple asynchronous interfaces: callback and promise'}
     } else if (callbackInterface) {
-      racingPromises.push(callbackDeferred.promise)
+      racingPromises.push(callbackPromise)
     } else if (promiseInterface) {
       racingPromises.push(fnReturn)
     } else {
       return {result: fnReturn}
     }
 
-    const uncaughtExceptionDeferred = Promise.defer()
-    const exceptionHandler = function(err) {
-      uncaughtExceptionDeferred.reject(err)
-    }
-    UncaughtExceptionManager.registerHandler(exceptionHandler)
-    racingPromises.push(uncaughtExceptionDeferred.promise)
+    let exceptionHandler
+    const uncaughtExceptionPromise = new Promise(function (resolve, reject) {
+      exceptionHandler = reject
+      UncaughtExceptionManager.registerHandler(exceptionHandler)
+    })
+    racingPromises.push(uncaughtExceptionPromise)
 
-    const timeoutDeferred = Promise.defer()
-    Time.setTimeout(function() {
-      const timeoutMessage = 'function timed out after ' + timeoutInMilliseconds + ' milliseconds'
-      timeoutDeferred.reject(new Error(timeoutMessage))
-    }, timeoutInMilliseconds)
-    racingPromises.push(timeoutDeferred.promise)
+    const timeoutPromise = new Promise(function (resolve, reject) {
+      Time.setTimeout(function() {
+        const timeoutMessage = 'function timed out after ' + timeoutInMilliseconds + ' milliseconds'
+        reject(new Error(timeoutMessage))
+      }, timeoutInMilliseconds)
+    })
+    racingPromises.push(timeoutPromise)
 
     let error, result
     try {

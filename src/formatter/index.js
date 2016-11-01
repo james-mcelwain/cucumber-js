@@ -1,10 +1,12 @@
-import Listener from '../listener'
+import _ from 'lodash'
 
-export default class Formatter extends Listener {
+export default class Formatter {
   constructor(options) {
-    super(options)
-    this.log = options.log
-    this.colorFns = options.colorFns
-    this.snippetBuilder = options.snippetBuilder
+    _.assign(this, _.pick(options, [
+      'colorFns',
+      'cwd',
+      'log',
+      'snippetBuilder'
+    ]))
   }
 }

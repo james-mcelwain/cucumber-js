@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import ArgvParser from './argv_parser'
 import fs from 'mz/fs'
-import Parser from './feature_parser'
+import FeatureParser from './feature_parser'
 import ProfileLoader from './profile_loader'
 import Promise from 'bluebird'
 
@@ -20,7 +20,7 @@ export async function getExpandedArgv({argv, cwd}) {
 export async function getFeatures(featurePaths) {
   return await Promise.map(featurePaths, async (featurePath) => {
     const source = await fs.readFile(featurePath, 'utf8')
-    return Parser.parse({source, uri: featurePath})
+    return FeatureParser.parse({source, uri: featurePath})
   })
 }
 

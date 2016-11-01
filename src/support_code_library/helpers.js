@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import HookDefinition from '../models/hook_definition'
-import Listener from '../listener'
 import StackTrace from 'stacktrace-js'
 import StepDefinition from '../models/step_definition'
 
@@ -44,9 +43,13 @@ export function registerHandler(cwd, collection) {
       handler = options
       options = {}
     }
-    _.assign(options, getDefinitionLineAndUri(), {cwd})
-    const listener = new Listener(options)
-    listener[`handle${eventName}`] = handler
+    const {line, uri} = getDefinitionLineAndUri()
+    const listener = _.assign({
+      cwd,
+      [`handle${eventName}`]: handler,
+      line,
+      uri
+    }, options)
     collection.push(listener)
   }
 }
