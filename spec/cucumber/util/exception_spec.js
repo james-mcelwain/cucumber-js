@@ -33,6 +33,7 @@ describe("Cucumber.Util.Arguments", function () {
 
       afterEach(function () {
         process.on = previousOn;
+        delete global.window;
       });
 
       it("registers the exception handler to the windows's 'onerror' event handler", function () {
@@ -69,6 +70,7 @@ describe("Cucumber.Util.Arguments", function () {
 
       afterEach(function () {
         process.removeListener = previousRemoveListener;
+        delete global.window;
       });
 
       it("registers the exception handler to the windows's 'onerror' event handler", function () {
